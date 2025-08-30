@@ -1,6 +1,3 @@
-from encodings.punycode import T
-import tempfile
-from webbrowser import get
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView, DetailView
 from django.http import HttpRequest
@@ -10,23 +7,38 @@ from django.db.models import Q
 from .models import Category, Product, Size
 
 
+# IndexView — це клас-представлення (view), який відповідає за головну сторінку сайту.
+# Ми успадковуємо його від TemplateView, бо нам потрібно відображати шаблон з контекстом.
 class IndexView(TemplateView):
+    # Основний шаблон, який використовується для рендерингу сторінки.
     template_name = 'main/base.html'
 
+    # Метод формує дані (контекст), які ми передаємо у шаблон.
     def get_context_data(self, **kwargs):
+        # Викликаємо базову реалізацію, щоб отримати стандартний контекст.
         context = super().get_context_data(**kwargs)
-        # виводемо всі категорії
-        context['category'] = Category.objects.all()
-        # конкретна категорія по умолчанію
+
+        # Додаємо до контексту список усіх категорій (для меню або фільтрів).
+        context['categories'] = Category.objects.all()
+
+        # Додаємо поточну категорію. За замовчуванням — None (нічого не вибрано).
         context['current_category'] = None
+
         return context
 
-    # получємо шаблони за топомогою get
+    # Перевизначаємо метод GET, який викликається при завантаженні сторінки.
     def get(self, request: HttpRequest, *args, **kwargs):
+        # Отримуємо контекст через метод get_context_data.
         context = self.get_context_data(**kwargs)
-        # дінамічний контент якшо був запрос, якшо ні вертаємо дефолт
+
+        # Якщо запит прийшов через HTMX (тобто це AJAX-запит),
+        # тоді повертаємо тільки частину сторінки (динамічний контент),
+        # щоб не перезавантажувати всю сторінку.
         if request.headers.get('HX-Request'):
-            return TemplateResponse(request, 'main/home)content.html', context)
+            return TemplateResponse(request, 'main/home_content.html', context)
+
+        # Якщо це звичайний запит (користувач просто відкрив сторінку),
+        # тоді повертаємо повний шаблон.
         return TemplateResponse(request, self.template_name, context)
 
 
@@ -42,7 +54,7 @@ class CatalogView(TemplateView):
         'color': lambda queryset, value: queryset.filter(color__iexact=value),
         'min_price': lambda queryset, value: queryset.filter(price__gte=value),
         'max_price': lambda queryset, value: queryset.filter(price__lte=value),
-        'size': lambda queryset, value: queryset.filter(product_size__size__name=value),
+        'size': lambda queryset, value: queryset.filter(product_sizes__size__name=value),
     }
 
     def get_context_data(self, **kwargs):
@@ -107,8 +119,8 @@ class CatalogView(TemplateView):
     # якщо параметр show_search=true
         if self.request.GET.get('show_search') == 'true':
             context['show_search'] = True
-        elif self.request.GET.get('reset_serch') == 'true':
-            context['show_search'] = False
+        elif self.request.GET.get('reset_search') == 'true':
+            context['reset_search'] = False
 
         return context
 
@@ -118,33 +130,44 @@ class CatalogView(TemplateView):
         if request.headers.get('HX-Request'):
             if context.get('show_search'):
                 return TemplateResponse(request, 'main/search_input.html', context)
-            elif context.get('reset_serch'):
+            elif context.get('reset_search'):
                 return TemplateResponse(request, 'main/search_button.html', {})
             template = 'main/filter_modal.html' if request.GET.get(
-                'shoe_filters') == 'true' else 'main/catalog.html'
+                'show_filters') == 'true' else 'main/catalog.html'
             return TemplateResponse(request, template, context)
         return TemplateResponse(request, self.template_name, context)
 
 
 class ProductDetailView(DetailView):
+    # Використовуємо готовий generic-клас DetailView для відображення одного об’єкта
+    # модель, з якою працюємо (Product)
     model = Product
-    template_name = 'main/base.html'
-    slug_field = 'slug'
+    template_name = 'main/base.html'         # шаблон за замовчуванням
+    slug_field = 'slug'                      # поле, по якому шукаємо продукт
+    # ключ у URL (наприклад: /product/<slug>/)
     slug_url_kwarg = 'slug'
 
+    # Додаємо додаткові дані у контекст
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        product = self.get_object()
+        product = self.get_object()  # отримуємо поточний продукт по slug
+        # Всі категорії, щоб можна було вивести меню/фільтр
         context['categories'] = Category.objects.all()
+        # Схожі продукти (тієї ж категорії, але виключаємо поточний товар)
         context['related_products'] = Product.objects.filter(
             category=product.category,
-        ).exclude(id=product.id)[:4]
+        ).exclude(id=product.id)[:4]  # обмежуємо 4 штуками
+        # Зберігаємо slug категорії для підсвітки/навігації
         context['current_product'] = product.category.slug
         return context
 
+    # Перевизначаємо метод GET
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(**kwargs)
+        self.object = self.get_object()                # дістаємо сам продукт
+        context = self.get_context_data(**kwargs)      # формуємо контекст
+        # Якщо запит зроблений через HTMX (динамічний)
         if request.headers.get('HX-Request'):
+            # Віддаємо тільки частковий шаблон з деталями продукту
             return TemplateResponse(request, 'main/product_detail.html', context)
-        raise TemplateResponse(request, self.template_name, context)
+        # Якщо це звичайний запит — повертаємо повну сторінку
+        return TemplateResponse(request, self.template_name, context)
