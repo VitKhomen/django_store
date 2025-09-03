@@ -15,14 +15,14 @@ class Cart(models.Model):
         return f"Cart {self.session_key}"
 
     @property
-    def item_total(self):
-        return sum(item.quantity for item in self.item.all())
+    def total_items(self):
+        return sum(item.quantity for item in self.items.all())
 
     @property
     def subtotal(self):
-        return sum(item.total_price for item in self.item.all())
+        return sum(item.total_price for item in self.items.all())
 
-    def add(self, product, product_size, quantity=1):
+    def add_item(self, product, product_size, quantity=1):
         cart_item, created = CartItem.objects.get_or_create(
             cart=self,
             product=product,
@@ -35,7 +35,7 @@ class Cart(models.Model):
 
         return cart_item
 
-    def remove(self, item_id):
+    def remove_item(self, item_id):
         try:
             item = self.items.get(id=item_id)
             item.delete()
@@ -43,7 +43,7 @@ class Cart(models.Model):
         except CartItem.DoesNotExist:
             return False
 
-    def remove(self, item_id, quantity):
+    def update_item_quantity(self, item_id, quantity):
         try:
             item = self.items.get(id=item_id)
             if quantity > 0:
@@ -75,4 +75,4 @@ class CartItem(models.Model):
 
     @property
     def total_price(self):
-        return Decimal(str(self.product.price) * self.quantity)
+        return Decimal(str(self.product.price * self.quantity))
