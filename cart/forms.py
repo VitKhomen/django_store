@@ -3,8 +3,8 @@ from django import forms
 from .models import CartItem
 
 
-class AddToCardForm(forms.ModelForm):
-    size_ad = forms.IntegerField(required=False)
+class AddToCartForm(forms.Form):
+    size_id = forms.IntegerField(required=False)
     quantity = forms.IntegerField(min_value=1, initial=1)
 
     def __init__(self, *args, product=None, **kwargs):
@@ -13,7 +13,7 @@ class AddToCardForm(forms.ModelForm):
 
         if product:
             sizes = product.product_sizes.filter(stock__gt=0)
-            if sizes.exist():
+            if sizes.exists():
                 self.fields['size_id'] = forms.ChoiceField(
                     choices=[(ps.id, ps.size.name) for ps in sizes],
                     required=True,

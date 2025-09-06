@@ -1,5 +1,5 @@
 from calendar import c
-from django.shortcuts import get_object_or_404, redirect, get_list_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import View
 from django.http import JsonResponse, HttpResponse
 from django.template.response import TemplateResponse
@@ -8,7 +8,7 @@ from django.db import transaction
 
 from main.models import Product, ProductSize
 from .models import Cart, CartItem
-from .forms import AddToCardForm
+from .forms import AddToCartForm
 
 import json
 
@@ -46,9 +46,9 @@ class AddCartView(CartMixin, View):
     @transaction.atomic
     def post(self, request, slug):
         cart = self.get_cart(request)
-        product = get_list_or_404(Product, slug=slug)
+        product = get_object_or_404(Product, slug=slug)
 
-        form = AddToCardForm(request.POST, product=product)
+        form = AddToCartForm(request.POST, product=product)
 
         if not form.is_valid():
             return JsonResponse({
@@ -135,7 +135,7 @@ class RemoveCartItemView(CartMixin, View):
         cart = self.get_cart(request)
 
         try:
-            cart_item = cart.item.get(id=item_id)
+            cart_item = cart.items.get(id=item_id)
             cart_item.delete()
 
             request.session['cart_id'] = cart.id
@@ -144,7 +144,7 @@ class RemoveCartItemView(CartMixin, View):
             context = {
                 'cart': cart,
                 'cart_items': cart.items.select_related(
-                    'product', 'product_size').order_by('-created_at')
+                    'product', 'product_size').order_by('-added_at')
             }
             return TemplateResponse(request, 'cart/cart_modal.html', context)
         except CartItem.DoesNotExist:
@@ -183,6 +183,6 @@ class SummaryCartView(CartMixin, View):
         context = {
             'cart': cart,
             'cart_items': cart.items.select_related(
-                'product', 'product_size').order_by('-created_at')
+                'product', 'product_size').order_by('-added_at')
         }
         return TemplateResponse(request, 'cart/cart_summary.html', context)
