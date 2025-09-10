@@ -18,26 +18,26 @@ def register(request):
             user = form.save()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('main:index')
-        else:
-            form = CustomUserCreationForm()
-    return redirect(request, 'user/register.html', {'form': form})
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'users/register.html', {'form': form})
 
 
 def login_view(request):
-    if request.METHOD == 'POST':
+    if request.method == 'POST':
         form = CustomUserLoginForm(request=request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('main:index')
-        else:
-            form = CustomUserLoginForm()
-    return redirect(request, 'user/register.html', {'form': form})
+    else:
+        form = CustomUserLoginForm()
+    return render(request, 'users/login.html', {'form': form})
 
 
 @login_required(login_url='/users/login/')
 def profile_view(request):
-    if request.METHOD == 'POST':
+    if request.method == 'POST':
         form = CustomUserUpdateForm(request.POST, instance=request.user)
         if form.valid():
             form.save()
@@ -49,7 +49,7 @@ def profile_view(request):
 
     recommended_products = Product.objects.all().order_by('id')[:3]
 
-    return TemplateResponse(request, 'user/profile.html', {
+    return TemplateResponse(request, 'users/profile.html', {
         'form': form,
         'user': request.user,
         'recommended_products': recommended_products
