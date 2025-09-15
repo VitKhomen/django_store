@@ -15,6 +15,7 @@ from .models import Order, OrderItem
 from cart.views import CartMixin
 from cart.models import Cart
 from main.models import ProductSize
+from payment.views import create_stripe_checkout_session
 
 
 @method_decorator(login_required(login_url='/users/login'), name='dispatch')
@@ -35,7 +36,7 @@ class CheckoutView(CartMixin, View):
         context = {
             'form': form,
             'cart': cart,
-            'cart_item': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
+            'cart_items': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
             'total_price': total_price,
         }
 
@@ -57,7 +58,7 @@ class CheckoutView(CartMixin, View):
             context = {
                 'form': OrderForm(user=request.user),
                 'cart': cart,
-                'cart_item': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
+                'cart_items': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
                 'total_price': cart.subtotal,
                 'error_message': 'Please select a valid payment provider (stripe or heleket).',
             }
@@ -99,6 +100,37 @@ class CheckoutView(CartMixin, View):
                     price=item.product.price or Decimal('0.00'),
                 )
 
-            # try:
-            #     if payment_provider == 'stripe':
-            #         checkout_session =
+            try:
+                if payment_provider == 'stripe':
+                    checkout_session = create_stripe_checkout_session(
+                        order, request)
+                    cart.clear()
+                    if request.headers.get('HX-Request'):
+                        response = HttpResponse(status=200)
+                        response['HX-Redirect'] = checkout_session.url
+                        return response
+                    return redirect(checkout_session.url)
+            except Exception as e:
+                order.delete()
+                context = {
+                    'form': form,
+                    'cart': cart,
+                    'cart_items': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
+                    'total_price': total_price,
+                    'error_message': f'Payment processing error: {str(e)}'
+                }
+            if request.headers.get('HX-Request'):
+                return TemplateResponse(request, 'orders/checkout_content.html', context)
+            return redirect(request, 'orders/checkout.html', context)
+
+        else:
+            context = {
+                'form': form,
+                'cart': cart,
+                'cart_items': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
+                'total_price': total_price,
+                'error_message': f'Please correct the errors on te form.'
+            }
+            if request.headers.get('HX-Request'):
+                return TemplateResponse(request, 'orders/checkout_content.html', context)
+            return redirect(request, 'orders/checkout.html', context)
