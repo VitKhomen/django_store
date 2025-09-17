@@ -72,12 +72,12 @@ class OrderForm(forms.Form):
             'placeholder': 'State/Province'
         })
     )
-    postal_code = forms.CharField(
+    post_code = forms.CharField(
         max_length=20,
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-3 border border-black rounded-none text-black placeholder-gray-500 focus:outline-none focus:border-black',
-            'placeholder': 'Postal Code'
+            'placeholder': 'Post Code'
         })
     )
     phone = forms.CharField(
@@ -101,13 +101,13 @@ class OrderForm(forms.Form):
             self.fields['city'].initial = user.city
             self.fields['country'].initial = user.country
             self.fields['province'].initial = user.province
-            self.fields['postal_code'].initial = user.postal_code
+            self.fields['post_code'].initial = user.post_code
             self.fields['phone'].initial = user.phone
 
     def clean(self):
         cleaned_data = super().clean()
         for field in ['company', 'address1', 'address2', 'city',
-                      'country', 'province', 'postal_code', 'phone']:
+                      'country', 'province', 'post_code', 'phone']:
             if cleaned_data.get(field):
                 cleaned_data[field] = strip_tags(cleaned_data[field])
         return cleaned_data

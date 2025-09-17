@@ -9,6 +9,7 @@ from django.views.generic import View
 from django.shortcuts import get_object_or_404
 
 from decimal import Decimal
+import logging
 
 from .forms import OrderForm
 from .models import Order, OrderItem
@@ -84,7 +85,7 @@ class CheckoutView(CartMixin, View):
                 city=form.cleaned_data['city'],
                 country=form.cleaned_data['country'],
                 province=form.cleaned_data['province'],
-                postal_code=form.cleaned_data['postal_code'],
+                post_code=form.cleaned_data['post_code'],
                 phone=form.cleaned_data['phone'],
                 special_instructions='',
                 total_price=total_price,
@@ -93,7 +94,7 @@ class CheckoutView(CartMixin, View):
 
             for item in cart.items.select_related('product', 'product_size__size'):
                 OrderItem.objects.create(
-                    order-order,
+                    order=order,
                     product=item.product,
                     size=item.product_size,
                     quantity=item.quantity,
