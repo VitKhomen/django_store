@@ -131,6 +131,8 @@ class CheckoutView(CartMixin, View):
                         return response
                     return redirect(checkout_session.url)
             except Exception as e:
+                logger.error(
+                    f"Error creating payment: {str(e)}", exc_info=True)
                 order.delete()
                 context = {
                     'form': form,
@@ -144,12 +146,13 @@ class CheckoutView(CartMixin, View):
             return redirect(request, 'orders/checkout.html', context)
 
         else:
+            logger.warning(f"Form validation error: {form.errors}")
             context = {
                 'form': form,
                 'cart': cart,
                 'cart_items': cart.items.select_related('product', 'product_size__size').order_by('-added_at'),
                 'total_price': total_price,
-                'error_message': f'Please correct the errors on te form.'
+                'error_message': f'Please correct the errors in the form.'
             }
             if request.headers.get('HX-Request'):
                 return TemplateResponse(request, 'orders/checkout_content.html', context)
