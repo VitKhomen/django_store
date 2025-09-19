@@ -1,27 +1,32 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
 import os
+from django.core.management.base import BaseCommand
+from users.models import CustomUser
 
 
 class Command(BaseCommand):
-    help = "Создаёт суперюзера, если он ещё не существует"
+    help = "Create a superuser from environment variables if it doesn't exist"
 
     def handle(self, *args, **options):
-        User = get_user_model()
-        email = os.getenv("DJANGO_SUPERUSER_EMAIL", "admin@example.com")
-        password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "admin123")
-        first_name = "Admin"
-        last_name = "User"
+        email = os.getenv("DJANGO_SUPERUSER_EMAIL")
+        first_name = 'admin'
+        last_name = 'admin'
+        password = os.getenv("DJANGO_SUPERUSER_PASSWORD")
 
-        if not User.objects.filter(email=email).exists():
-            User.objects.create_superuser(
+        if not email or not password:
+            self.stdout.write(self.style.ERROR(
+                "DJANGO_SUPERUSER_EMAIL and DJANGO_SUPERUSER_PASSWORD must be set!"
+            ))
+            return
+
+        if not CustomUser.objects.filter(email=email).exists():
+            CustomUser.objects.create_superuser(
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
                 password=password
             )
             self.stdout.write(self.style.SUCCESS(
-                f"Суперпользователь '{email}' создан"))
+                f"Superuser {email} created!"))
         else:
             self.stdout.write(self.style.WARNING(
-                f"Суперпользователь '{email}' уже существует"))
+                f"Superuser {email} already exists."))
