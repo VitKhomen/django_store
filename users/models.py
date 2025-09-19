@@ -12,6 +12,7 @@ class CustomUserManager(BaseUserManager):
                           last_name=last_name, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+        return user
 
     def create_superuser(self, email, first_name, last_name, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
@@ -38,8 +39,8 @@ class CustomUser(AbstractUser):
     post_code = models.CharField(max_length=20, blank=True, null=True)
     phone = models.CharField(
         max_length=100, blank=True, null=True, unique=True)
+    objects = CustomUserManager()
 
-    username = CustomUserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
