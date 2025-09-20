@@ -19,8 +19,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
-    "your-app.up.railway.app",
-    "yourdomain.com",
+    "bountiful-adaptation-production-b46a.up.railway.app",
 ]
 
 
