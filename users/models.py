@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.utils import timezone
 from django.utils.html import strip_tags
 
 
@@ -26,7 +27,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, first_name, last_name, password, **extra_fields)
 
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, max_length=254)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -39,6 +40,9 @@ class CustomUser(AbstractUser):
     post_code = models.CharField(max_length=20, blank=True, null=True)
     phone = models.CharField(
         max_length=100, blank=True, null=True, unique=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now)
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'

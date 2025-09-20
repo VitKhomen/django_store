@@ -8,8 +8,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         email = os.getenv("DJANGO_SUPERUSER_EMAIL")
-        first_name = os.getenv("DJANGO_SUPERUSER_FIRST_NAME", "Admin")
-        last_name = os.getenv("DJANGO_SUPERUSER_LAST_NAME", "User")
+        first_name = "Admin"
+        last_name = "Admin"
         password = os.getenv("DJANGO_SUPERUSER_PASSWORD")
 
         if not email or not password:
