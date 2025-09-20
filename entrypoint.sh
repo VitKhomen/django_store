@@ -1,8 +1,10 @@
 #!/bin/sh
+set -e
 
-set -e  # если ошибка — сразу стоп
+echo "👉 Running user migrations first..."
+python manage.py migrate users --noinput
 
-echo "👉 Running migrations..."
+echo "👉 Running all other migrations..."
 python manage.py migrate --noinput
 
 echo "👉 Creating superuser (if not exists)..."
