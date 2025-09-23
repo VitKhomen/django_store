@@ -12,7 +12,7 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     )
     PAYMENT_PROVIDER_CHOICES = (
-        ('strip', 'Strip'),
+        ('stripe', 'Stripe'),
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                              related_name='orders')

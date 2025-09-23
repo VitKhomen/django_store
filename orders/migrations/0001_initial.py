@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Order',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('first_name', models.CharField(max_length=50)),
                 ('last_name', models.CharField(max_length=50)),
                 ('email', models.EmailField(max_length=254)),
@@ -31,24 +32,33 @@ class Migration(migrations.Migration):
                 ('post_code', models.CharField(blank=True, max_length=20, null=True)),
                 ('phone', models.CharField(blank=True, max_length=15, null=True)),
                 ('special_instructions', models.TextField(blank=True)),
-                ('total_price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('shipped', 'Shipped'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled')], default='pending', max_length=20)),
-                ('payment_provider', models.CharField(blank=True, choices=[('strip', 'Strip')], max_length=20, null=True)),
-                ('strip_payment_intend_id', models.CharField(blank=True, max_length=255, null=True)),
+                ('total_price', models.DecimalField(
+                    decimal_places=2, max_digits=10)),
+                ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('shipped', 'Shipped'), (
+                    'delivered', 'Delivered'), ('cancelled', 'Cancelled')], default='pending', max_length=20)),
+                ('payment_provider', models.CharField(blank=True,
+                 choices=[('strip', 'Strip')], max_length=20, null=True)),
+                ('strip_payment_intend_id', models.CharField(
+                    blank=True, max_length=255, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='orders', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='OrderItem',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('quantity', models.PositiveIntegerField()),
                 ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.product')),
-                ('size', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.productsize')),
+                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='items', to='orders.order')),
+                ('product', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='main.product')),
+                ('size', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='main.productsize')),
             ],
         ),
     ]

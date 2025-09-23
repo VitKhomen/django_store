@@ -22,7 +22,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     "bountiful-adaptation-production-b46a.up.railway.app",
-    '127.0.0.1'
+    '127.0.0.1', 'localhost'
 ]
 
 
@@ -172,6 +172,13 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Домен Railway (или свой кастомный)
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.up.railway.app",
-    "https://yourdomain.com",
+    "https://bountiful-adaptation-production-b46a.up.railway.app",
+    "https://127.0.0.1:8000",
+    "https://localhost:8000",
 ]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
